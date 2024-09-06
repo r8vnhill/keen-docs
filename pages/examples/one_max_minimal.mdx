@@ -1,0 +1,90 @@
+# A Taste of Keen: Minimal OneMax Example
+
+In this section, you'll get a quick introduction to Keen by solving the **OneMax problem**—a classic optimization
+problem in evolutionary computation—with minimal configuration. The goal of this problem is to evolve a binary string
+where all bits are set to `true{:kotlin}` (or 1-bits).
+
+This example demonstrates Keen's power and flexibility, showcasing how easy it is to define a genetic algorithm (GA)
+with minimal setup.
+
+> **Note**: The following example uses mostly default configurations. While it’s not optimized for performance, it
+serves as a quick introduction. For a more detailed explanation of configurations, refer to the
+[OneMax example](link-to-onemax).
+
+## Problem Statement:
+The **OneMax** problem aims to maximize the number of `true{:kotlin}` values (or 1-bits) in a binary string of fixed
+length. The optimal solution is a string of all `true{:kotlin}` values, and the fitness function counts how many bits in
+the string are `true{:kotlin}`.
+
+## Implementation
+
+Here's the minimal configuration for solving the OneMax problem in Keen:
+
+```kotlin
+// Fitness function: counts the number of 'true' values in the genotype
+private fun count(genotype: Genotype<Boolean, BooleanGene>) = genotype.flatten().count { it }.toDouble()
+
+// Main function to solve the OneMax problem with minimal configuration
+suspend fun oneMaxMinimal() {
+    Domain.toStringMode = ToStringMode.SIMPLE
+    val engine = geneticAlgorithm(
+        ::count, // Fitness function
+        genotypeOf {
+            chromosomeOf {
+                booleans {
+                    size = 50 // Binary string of length 50
+                }
+            }
+        }
+    ) {
+        alterers += listOf(BitFlipMutator(), UniformCrossover()) // Mutation and crossover operators
+        limits += TargetFitness(50.0) // Stop evolution once fitness reaches 50
+        listeners += listOf(EvolutionSummary(), EvolutionPlotter()) // Evolution progress listeners
+    }
+    // Run the genetic algorithm
+    engine.evolve()
+    // Display summary of evolution
+    engine.publicListeners.filterIsInstance<EvolutionSummary<*, *, *, *>>().first().display()
+    // Display fitness progression plot
+    engine.publicListeners.filterIsInstance<EvolutionPlotter<*, *, *, *>>().first().display()
+}
+```
+
+### Code Breakdown:
+- **Fitness Function (`count`)**: Counts the number of `true{:kotlin}` bits in the genotype, which is the binary string.
+- **Genotype Configuration**: Defines a binary string of size 50 using `booleans { size = 50 }`.
+- **Operators**: Two genetic operators, `BitFlipMutator` (mutation) and `UniformCrossover` (crossover), are applied to
+    alter the population.
+- **Stopping Condition**: The algorithm stops once the target fitness (50 `true` bits) is reached.
+- **Listeners**: `EvolutionSummary` prints the summary, and `EvolutionPlotter` visualizes the fitness progress.
+
+### Example Usage:
+
+To run this example on different platforms, use the following:
+
+```kotlin
+// For JVM platforms:
+import kotlinx.coroutines.runBlocking
+fun main() = runBlocking {
+    oneMaxMinimal()
+}
+
+// For JS platforms:
+suspend fun main() {
+    oneMaxMinimal()
+}
+```
+
+### Expected Output:
+
+After running the evolution process, the following should be displayed:
+- **Evolution Summary**: A table or textual summary of the evolution process (e.g., generations, fitness values).
+- **Fitness Plot**: A plot showing the progression of fitness over generations.
+
+---
+
+## Key Points:
+- The example highlights the simplicity of Keen's genetic algorithm DSL.
+- Default settings are used for ease of understanding, but Keen offers powerful customization options for more complex use cases.
+- This code serves as a foundation for more advanced configurations and can be extended by modifying the mutation, crossover rates, or adding new constraints and operators.
+
